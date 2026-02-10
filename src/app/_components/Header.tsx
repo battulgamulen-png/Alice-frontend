@@ -1,5 +1,5 @@
 import Alice from "./Alice";
-import { DropDown } from "../(home)/_components/DropDown";
+import { DropDown } from "./DropDown";
 
 export default function Header() {
   return (

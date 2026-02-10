@@ -6,10 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Step2 from "./step2";
+import Step2 from "./create-password/page";
+
 export default function Page() {
   const [swapped, setSwapped] = useState(false);
   const [step, setStep] = useState(1);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -20,6 +25,7 @@ export default function Page() {
   }, []);
 
   const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center gap-40 bg-black">
       <motion.div
@@ -46,28 +52,65 @@ export default function Page() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">First Name</label>
-                <Input placeholder="Alice" />
+                <Input
+                  placeholder="Alice"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Last Name</label>
-                <Input placeholder="Alice" />
+                <Input
+                  placeholder="Alice"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
-                <Input placeholder="name@bank.com" />
+                <Input
+                  type="email"
+                  placeholder="name@bank.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone Number</label>
-                <Input placeholder="+976..." />
+                <Input
+                  placeholder="+976..."
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
-              <Button onClick={() => setStep(2)}>Log In</Button>
+              <Button
+                onClick={() => setStep(2)}
+                disabled={!firstName || !lastName || !email}
+              >
+                Next
+              </Button>
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                className="w-full text-sm text-center text-gray-600 hover:text-black transition"
+              >
+                ← Back to Home
+              </button>
             </CardContent>
           </Card>
         )}
-        {step === 2 && <Step2 />}
+        {step === 2 && (
+          <Step2
+            data={{ firstName, lastName, email, phone }}
+            onBack={() => setStep(1)}
+          />
+        )}
       </motion.div>
     </div>
   );

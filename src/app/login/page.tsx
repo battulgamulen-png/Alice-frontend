@@ -4,26 +4,39 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import ForgotPassword from "./forgot-password";
+import ForgotPassword from "./forgot-password/page";
 import { useRouter } from "next/navigation";
+import { apiPost } from "@/lib/api";
 
 export default function StepOne() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
-  const handleLogin = (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    // 🔒 MOCK LOGIN (frontend only)
-    setTimeout(() => {
-      console.log({ email, password });
-      alert("Login success (mock)");
+    try {
+      const data = await apiPost<{
+        user: { id: string; email: string; firstName: string; lastName: string };
+        token: string;
+      }>("/auth/login", { email, password });
+
+      localStorage.setItem("auth_token", data.token);
+      localStorage.setItem("auth_user", JSON.stringify(data.user));
+      router.push("/user");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
-  const router = useRouter();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
       <div className="bg-white w-200 h-200 rounded-2xl flex items-center justify-center">
@@ -71,14 +84,26 @@ export default function StepOne() {
                     Forgot password
                   </button>
 
+                  {error && (
+                    <p className="text-sm text-red-600" role="alert">
+                      {error}
+                    </p>
+                  )}
+
                   <Button
                     type="submit"
                     disabled={loading}
                     className="w-full bg-black text-white hover:bg-neutral-800"
                   >
-                    {/* {loading ? "Signing in..." : "Sign In"} */}
-                    Log In
+                    {loading ? "Signing in..." : "Log In"}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/")}
+                    className="w-full text-sm text-center text-gray-600 hover:text-black transition"
+                  >
+                    ← Back to Home
+                  </button>
                   <p className="text-center text-xs text-gray-500">
                     Secured by Alice
                   </p>
