@@ -21,13 +21,6 @@ const accounts: Account[] = [
     number: "**** 9012",
     balance: "₮12,345,000",
   },
-  {
-    id: "2",
-    name: "Savings Account",
-    number: "**** 4421",
-    balance: "₮8,900,000",
-  },
-  { id: "3", name: "USD Account", number: "**** 7723", balance: "$2,150.00" },
 ];
 
 export default function Transfer() {
