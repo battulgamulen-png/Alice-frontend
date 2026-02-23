@@ -5,23 +5,45 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { apiPost } from "@/lib/api";
 
 export default function ForgotPassword() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleReset = (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation do not match");
+      return;
+    }
+
     setLoading(true);
 
-    // 🔒 MOCK RESET (frontend only)
-    setTimeout(() => {
-      console.log({ email, phone });
-      alert("Password reset link sent (mock)");
+    try {
+      const data = await apiPost<{ message: string }>("/auth/forgot-password", {
+        email,
+        phone,
+        newPassword,
+      });
+      setSuccess(data.message);
+      setTimeout(() => {
+        router.push("/login");
+      }, 1200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Password reset failed");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -34,7 +56,7 @@ export default function ForgotPassword() {
                 Forgot Password
               </CardTitle>
               <p className="text-sm text-gray-500">
-                Enter your email and phone
+                Enter your email, phone, and new password
               </p>
             </CardHeader>
 
@@ -64,12 +86,49 @@ export default function ForgotPassword() {
                   />
                 </div>
 
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">New Password</label>
+                  <Input
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="border-black focus-visible:ring-black"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Confirm Password</label>
+                  <Input
+                    type="password"
+                    placeholder="Repeat new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="border-black focus-visible:ring-black"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-600" role="alert">
+                    {error}
+                  </p>
+                )}
+                {success && (
+                  <p className="text-sm text-green-700" role="status">
+                    {success}
+                  </p>
+                )}
+
                 <Button
                   type="submit"
                   disabled={loading}
                   className="w-full bg-black text-white hover:bg-neutral-800"
                 >
-                  {loading ? "Sending..." : "Send Reset Link"}
+                  {loading ? "Updating..." : "Reset Password"}
                 </Button>
 
                 {/* ✅ BACK BUTTON */}

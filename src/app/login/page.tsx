@@ -23,7 +23,13 @@ export default function StepOne() {
 
     try {
       const data = await apiPost<{
-        user: { id: string; email: string; firstName: string; lastName: string };
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          balanceUsdCents: number;
+        };
         token: string;
       }>("/auth/login", { email, password });
 

@@ -15,6 +15,7 @@ export default function Page() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,9 +90,18 @@ export default function Page() {
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Card Number (8 digits)</label>
+                <Input
+                  placeholder="12345678"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  required
+                />
+              </div>
               <Button
                 onClick={() => setStep(2)}
-                disabled={!firstName || !lastName || !email}
+                disabled={!firstName || !lastName || !email || cardNumber.length !== 8}
               >
                 Next
               </Button>
@@ -107,7 +117,7 @@ export default function Page() {
         )}
         {step === 2 && (
           <Step2
-            data={{ firstName, lastName, email, phone }}
+            data={{ firstName, lastName, email, phone, cardNumber }}
             onBack={() => setStep(1)}
           />
         )}

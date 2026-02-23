@@ -14,6 +14,7 @@ type Step2Props = {
     lastName: string;
     email: string;
     phone?: string;
+    cardNumber: string;
   };
   onBack?: () => void;
 };
@@ -49,6 +50,10 @@ export default function Step2({ data, onBack }: Step2Props) {
       setError("Missing signup data");
       return;
     }
+    if (!/^\d{8}$/.test(data.cardNumber)) {
+      setError("Card number must be exactly 8 digits");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -57,7 +62,13 @@ export default function Step2({ data, onBack }: Step2Props) {
         password,
       };
       const result = await apiPost<{
-        user: { id: string; email: string; firstName: string; lastName: string };
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          balanceUsdCents: number;
+        };
         token: string;
       }>("/auth/signup", payload);
 

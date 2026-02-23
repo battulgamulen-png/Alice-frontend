@@ -1,137 +1,153 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiGetAuth, apiPostAuth } from "@/lib/api";
 
-type Account = {
+type Card = {
   id: string;
-  name: string;
+  holderName: string;
   number: string;
-  balance?: string;
+  balanceUsdCents: number;
 };
 
-type Recipient = {
-  name: string;
-  number: string;
-};
+const formatUsd = (cents: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(cents / 100);
 
-const accounts: Account[] = [
-  {
-    id: "1",
-    name: "Main Account",
-    number: "**** 9012",
-    balance: "₮12,345,000",
-  },
-];
+const formatCardNumber = (digits: string) =>
+  digits.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
 
 export default function Transfer() {
-  const [fromAccount, setFromAccount] = useState<Account>(accounts[0]);
-  const [toUser, setToUser] = useState<Recipient>({ name: "", number: "" });
+  const [cards, setCards] = useState<Card[]>([]);
+  const [fromCardId, setFromCardId] = useState("");
+  const [toName, setToName] = useState("");
+  const [toNumber, setToNumber] = useState("");
   const [amount, setAmount] = useState<number | "">("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  // dropdown state
-  const [open, setOpen] = useState(false);
-  const ddRef = useRef<HTMLDivElement | null>(null);
+  const fromCard = useMemo(
+    () => cards.find((card) => card.id === fromCardId) ?? cards[0] ?? null,
+    [cards, fromCardId],
+  );
 
-  // close on outside click
   useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (!ddRef.current) return;
-      if (!ddRef.current.contains(e.target as Node)) setOpen(false);
+    const loadCards = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setError("Unauthorized");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await apiGetAuth<{ cards: Card[] }>("/me/cards", token);
+        setCards(data.cards);
+        if (data.cards.length > 0) {
+          setFromCardId(data.cards[0].id);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load cards");
+      } finally {
+        setLoading(false);
+      }
     };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+
+    loadCards();
   }, []);
 
-  const handleTransfer = () => {
-    if (amount === "" || amount <= 0) return alert("Enter valid amount");
-    if (!toUser.name.trim()) return alert("Recipient name required");
-    if (!toUser.number.trim())
-      return alert("Recipient account number required");
+  const handleTransfer = async () => {
+    setError(null);
+    setSuccess(null);
 
-    alert(
-      `Transferred ${amount} from ${fromAccount.name} (${fromAccount.number}) to ${toUser.name} (${toUser.number})`,
-    );
+    if (!fromCard) return setError("From card is required");
+    if (!toName.trim()) return setError("Recipient name required");
+    if (!toNumber.trim()) return setError("Recipient card number required");
+    if (!/^\d{8}$/.test(toNumber.replace(/\D/g, ""))) {
+      return setError("Recipient card number must be exactly 8 digits");
+    }
+    if (amount === "" || amount <= 0) return setError("Enter valid amount");
 
-    setAmount("");
-    setToUser({ name: "", number: "" });
+    const token = localStorage.getItem("auth_token");
+    if (!token) return setError("Unauthorized");
+
+    setSubmitting(true);
+    try {
+      const data = await apiPostAuth<{ cards: Card[] }>(
+        "/me/cards/transfer",
+        {
+          fromCardNumber: fromCard.number,
+          toCardNumber: toNumber,
+          toCardHolder: toName,
+          amountUsd: amount,
+        },
+        token,
+      );
+
+      setCards(data.cards);
+      setSuccess("Transfer completed");
+      setAmount("");
+      setToName("");
+      setToNumber("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Transfer failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
       <div className="bg-white text-black rounded-3xl p-6 w-full max-w-md shadow-xl">
-        <h2 className="text-2xl font-semibold mb-6">Bank Transfer</h2>
+        <h2 className="text-2xl font-semibold mb-6">Card To Card Transfer</h2>
 
-        {/* From (Selectable) */}
-        <div className="mb-4 relative" ref={ddRef}>
-          <label className="block text-gray-600 mb-1">From Account</label>
+        {loading && <p className="text-sm text-gray-600 mb-4">Loading cards...</p>}
 
-          <div
-            onClick={() => setOpen((v) => !v)}
-            className="flex items-center justify-between p-3 border rounded-lg bg-gray-100 cursor-pointer hover:bg-gray-200 transition"
-          >
-            <div>
-              <p className="font-medium">{fromAccount.name}</p>
-              <p className="text-sm text-gray-500">
-                {fromAccount.number}
-                {fromAccount.balance ? ` · ${fromAccount.balance}` : ""}
-              </p>
-            </div>
-            <span className="text-gray-500 text-sm">{open ? "▲" : "▼"}</span>
-          </div>
-
-          {open && (
-            <div className="absolute z-20 mt-2 w-full bg-white border rounded-lg shadow-lg overflow-hidden">
-              {accounts.map((acc) => (
-                <button
-                  type="button"
-                  key={acc.id}
-                  onClick={() => {
-                    setFromAccount(acc);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left p-3 hover:bg-gray-50 transition ${
-                    acc.id === fromAccount.id ? "bg-gray-100" : ""
-                  }`}
-                >
-                  <p className="font-medium">{acc.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {acc.number}
-                    {acc.balance ? ` · ${acc.balance}` : ""}
-                  </p>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* To */}
         <div className="mb-4">
-          <label className="block text-gray-600 mb-1">To Account</label>
-          <div className="flex flex-col gap-2 p-3 border rounded-lg bg-gray-100">
-            <input
-              type="text"
-              placeholder="Recipient Name"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={toUser.name}
-              onChange={(e) =>
-                setToUser((p) => ({ ...p, name: e.target.value }))
-              }
-            />
-            <input
-              type="text"
-              placeholder="Recipient Bank number"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={toUser.number}
-              onChange={(e) =>
-                setToUser((p) => ({ ...p, number: e.target.value }))
-              }
-            />
-          </div>
+          <label className="block text-gray-600 mb-1">From Card</label>
+          <select
+            value={fromCard?.id ?? ""}
+            onChange={(e) => setFromCardId(e.target.value)}
+            className="w-full p-3 border rounded-lg bg-gray-100"
+            disabled={loading || cards.length === 0}
+          >
+            {cards.map((card) => (
+              <option key={card.id} value={card.id}>
+                {formatCardNumber(card.number)} · {card.holderName} ·{" "}
+                {formatUsd(card.balanceUsdCents)}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Amount */}
+        <div className="mb-4">
+          <label className="block text-gray-600 mb-1">To Card Holder Name</label>
+          <input
+            type="text"
+            placeholder="Recipient Name"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={toName}
+            onChange={(e) => setToName(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-gray-600 mb-1">To Card Number</label>
+          <input
+            type="text"
+            placeholder="12345678"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={toNumber}
+            onChange={(e) => setToNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
+          />
+        </div>
+
         <div className="mb-6">
-          <label className="block text-gray-600 mb-1">Amount</label>
+          <label className="block text-gray-600 mb-1">Amount (USD)</label>
           <input
             type="number"
             placeholder="Enter amount"
@@ -144,13 +160,21 @@ export default function Transfer() {
           />
         </div>
 
-        {/* Transfer Button */}
         <button
           onClick={handleTransfer}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition"
+          disabled={submitting || cards.length < 2}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
         >
-          Transfer
+          {submitting ? "Processing..." : "Transfer"}
         </button>
+
+        {cards.length < 2 && (
+          <p className="mt-3 text-sm text-gray-600">
+            At least 2 cards are required. Create another card first.
+          </p>
+        )}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {success && <p className="mt-3 text-sm text-green-700">{success}</p>}
       </div>
     </div>
   );
