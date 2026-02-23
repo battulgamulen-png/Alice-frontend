@@ -54,6 +54,27 @@ export async function apiPostAuth<T>(
   return data as T;
 }
 
+export async function apiPutAuth<T>(
+  path: string,
+  body: unknown,
+  token: string,
+): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = (await res.json()) as T & ApiError;
+  if (!res.ok) {
+    throw new Error(data.error || "Request failed");
+  }
+  return data as T;
+}
+
 export async function apiGetAuth<T>(path: string, token: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "GET",

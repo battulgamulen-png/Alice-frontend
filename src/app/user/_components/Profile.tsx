@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import AccountSummary from "./AccountSummary";
 import PersonalInformation from "./PersonalInformation";
+import { apiGetAuth, apiPutAuth } from "@/lib/api";
 
 export type KycStatus = "Not Verified" | "Pending" | "Verified";
 
@@ -71,6 +72,48 @@ export default function Profile() {
 
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setError("Unauthorized");
+        setLoading(false);
+        return;
+      }
+      try {
+        const result = await apiGetAuth<{
+          user: {
+            id: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+            phone: string | null;
+          };
+        }>("/me", token);
+
+        const dbProfile: ProfileData = {
+          ...initialProfile,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+          email: result.user.email,
+          phone: result.user.phone ?? "",
+          displayName: `${result.user.firstName} ${result.user.lastName}`.trim(),
+        };
+
+        setProfile(dbProfile);
+        setDraft(dbProfile);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const errors = useMemo(() => {
     const e: Partial<Record<keyof ProfileData, string>> = {};
@@ -105,14 +148,61 @@ export default function Profile() {
   const save = async () => {
     if (hasErrors) return;
     setSaving(true);
+    setError(null);
 
-    // ✅ энд API холбож болно:
-    // await fetch("/api/profile", { method: "PUT", body: JSON.stringify(draft) })
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        setError("Unauthorized");
+        return;
+      }
 
-    await new Promise((r) => setTimeout(r, 600)); // mock delay
-    setProfile(draft);
-    setEditing(false);
-    setSaving(false);
+      const result = await apiPutAuth<{
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          phone: string | null;
+        };
+      }>(
+        "/me/profile",
+        {
+          firstName: draft.firstName,
+          lastName: draft.lastName,
+          email: draft.email,
+          phone: draft.phone,
+        },
+        token,
+      );
+
+      const updated: ProfileData = {
+        ...draft,
+        firstName: result.user.firstName,
+        lastName: result.user.lastName,
+        email: result.user.email,
+        phone: result.user.phone ?? "",
+        displayName: `${result.user.firstName} ${result.user.lastName}`.trim(),
+      };
+
+      setProfile(updated);
+      setDraft(updated);
+      localStorage.setItem(
+        "auth_user",
+        JSON.stringify({
+          ...(JSON.parse(localStorage.getItem("auth_user") || "{}") as object),
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+          email: result.user.email,
+          phone: result.user.phone,
+        }),
+      );
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const onChange = <K extends keyof ProfileData>(
@@ -123,6 +213,16 @@ export default function Profile() {
   };
 
   const data = editing ? draft : profile;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white p-6">
+        <div className="mx-auto w-full max-w-5xl">
+          <p className="text-sm text-white/70">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
@@ -177,10 +277,7 @@ export default function Profile() {
           />
         </div>
 
-        <p className="mt-6 text-xs text-white/50">
-          * Энэ бол UI + local state demo. API/DB холболт нэмэх бол profile
-          update endpoint хийж өгнө.
-        </p>
+        {error && <p className="mt-6 text-xs text-red-400">{error}</p>}
       </div>
     </div>
   );

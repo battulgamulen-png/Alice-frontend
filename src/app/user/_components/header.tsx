@@ -15,11 +15,11 @@ export default function HeaderUser() {
 
       {/* User Actions */}
       <div className="flex items-center space-x-4">
-        {/* Notification Icon */}
+        {/* Notification Icon
         <button className="relative p-2 rounded-lg hover:bg-gray-800 transition">
           <Bell className="w-6 h-6 text-white" />
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full ring-1 ring-black"></span>
-        </button>
+        </button> */}
       </div>
     </header>
   );

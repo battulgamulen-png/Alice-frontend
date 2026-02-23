@@ -22,8 +22,14 @@ const formatCardNumber = (digits: string) =>
 export default function Transfer() {
   const [cards, setCards] = useState<Card[]>([]);
   const [fromCardId, setFromCardId] = useState("");
-  const [toName, setToName] = useState("");
   const [toNumber, setToNumber] = useState("");
+  const [toCardInfo, setToCardInfo] = useState<{
+    id: string;
+    holderName: string;
+    number: string;
+    isOwnCard: boolean;
+  } | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
   const [amount, setAmount] = useState<number | "">("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +40,6 @@ export default function Transfer() {
     () => cards.find((card) => card.id === fromCardId) ?? cards[0] ?? null,
     [cards, fromCardId],
   );
-
   useEffect(() => {
     const loadCards = async () => {
       const token = localStorage.getItem("auth_token");
@@ -60,16 +65,47 @@ export default function Transfer() {
     loadCards();
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const normalized = toNumber.replace(/\D/g, "");
+    setToCardInfo(null);
+
+    if (!token) return;
+    if (!/^\d{8}$/.test(normalized)) return;
+
+    const timer = setTimeout(async () => {
+      setLookupLoading(true);
+      try {
+        const data = await apiGetAuth<{
+          card: {
+            id: string;
+            holderName: string;
+            number: string;
+            isOwnCard: boolean;
+          };
+        }>(`/me/cards/lookup?number=${normalized}`, token);
+        setToCardInfo(data.card);
+      } catch {
+        setToCardInfo(null);
+      } finally {
+        setLookupLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [toNumber]);
+
   const handleTransfer = async () => {
     setError(null);
     setSuccess(null);
 
     if (!fromCard) return setError("From card is required");
-    if (!toName.trim()) return setError("Recipient name required");
-    if (!toNumber.trim()) return setError("Recipient card number required");
-    if (!/^\d{8}$/.test(toNumber.replace(/\D/g, ""))) {
+    const normalized = toNumber.replace(/\D/g, "");
+    if (!/^\d{8}$/.test(normalized)) {
       return setError("Recipient card number must be exactly 8 digits");
     }
+    if (!toCardInfo) return setError("Recipient account not found");
+    if (toCardInfo.isOwnCard) return setError("Cannot transfer to your own card");
     if (amount === "" || amount <= 0) return setError("Enter valid amount");
 
     const token = localStorage.getItem("auth_token");
@@ -81,8 +117,8 @@ export default function Transfer() {
         "/me/cards/transfer",
         {
           fromCardNumber: fromCard.number,
-          toCardNumber: toNumber,
-          toCardHolder: toName,
+          toCardNumber: toCardInfo.number,
+          toCardHolder: toCardInfo.holderName,
           amountUsd: amount,
         },
         token,
@@ -91,8 +127,8 @@ export default function Transfer() {
       setCards(data.cards);
       setSuccess("Transfer completed");
       setAmount("");
-      setToName("");
       setToNumber("");
+      setToCardInfo(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transfer failed");
     } finally {
@@ -125,17 +161,6 @@ export default function Transfer() {
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-600 mb-1">To Card Holder Name</label>
-          <input
-            type="text"
-            placeholder="Recipient Name"
-            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={toName}
-            onChange={(e) => setToName(e.target.value)}
-          />
-        </div>
-
-        <div className="mb-4">
           <label className="block text-gray-600 mb-1">To Card Number</label>
           <input
             type="text"
@@ -144,6 +169,22 @@ export default function Transfer() {
             value={toNumber}
             onChange={(e) => setToNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
           />
+          {lookupLoading && (
+            <p className="mt-2 text-xs text-gray-500">Checking account...</p>
+          )}
+          {toCardInfo && !toCardInfo.isOwnCard && (
+            <p className="mt-2 text-xs text-green-700">
+              Account found: {toCardInfo.holderName}
+            </p>
+          )}
+          {toCardInfo?.isOwnCard && (
+            <p className="mt-2 text-xs text-red-600">
+              This is your own card. Enter another account.
+            </p>
+          )}
+          {!lookupLoading && /^\d{8}$/.test(toNumber) && !toCardInfo && (
+            <p className="mt-2 text-xs text-red-600">Account not found</p>
+          )}
         </div>
 
         <div className="mb-6">
@@ -162,15 +203,15 @@ export default function Transfer() {
 
         <button
           onClick={handleTransfer}
-          disabled={submitting || cards.length < 2}
+          disabled={submitting || cards.length < 1}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-60"
         >
           {submitting ? "Processing..." : "Transfer"}
         </button>
 
-        {cards.length < 2 && (
+        {cards.length < 1 && (
           <p className="mt-3 text-sm text-gray-600">
-            At least 2 cards are required. Create another card first.
+            Transfer хийхийн тулд эхлээд өөрийн картаа үүсгэнэ үү.
           </p>
         )}
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
