@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Step2 from "./create-password/page";
+import { apiGet } from "@/lib/api";
 
 export default function Page() {
   const [swapped, setSwapped] = useState(false);
@@ -16,6 +17,10 @@ export default function Page() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [cardNumber, setCardNumber] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+  const [cardAvailable, setCardAvailable] = useState<boolean | null>(null);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -24,6 +29,43 @@ export default function Page() {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const normalizedCard = cardNumber.replace(/\D/g, "");
+    const shouldCheckEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const shouldCheckCard = /^\d{8}$/.test(normalizedCard);
+
+    setAvailabilityError(null);
+    if (!shouldCheckEmail) setEmailAvailable(null);
+    if (!shouldCheckCard) setCardAvailable(null);
+
+    if (!shouldCheckEmail && !shouldCheckCard) return;
+
+    const timer = setTimeout(async () => {
+      setChecking(true);
+      try {
+        const qs = new URLSearchParams();
+        if (shouldCheckEmail) qs.set("email", email.trim());
+        if (shouldCheckCard) qs.set("cardNumber", normalizedCard);
+
+        const data = await apiGet<{
+          emailAvailable: boolean | null;
+          cardNumberAvailable: boolean | null;
+        }>(`/auth/signup/check?${qs.toString()}`);
+
+        if (shouldCheckEmail) setEmailAvailable(data.emailAvailable);
+        if (shouldCheckCard) setCardAvailable(data.cardNumberAvailable);
+      } catch (err) {
+        setAvailabilityError(
+          err instanceof Error ? err.message : "Could not check availability",
+        );
+      } finally {
+        setChecking(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [email, cardNumber]);
 
   const router = useRouter();
 
@@ -80,6 +122,12 @@ export default function Page() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                {emailAvailable === false && (
+                  <p className="text-xs text-red-600">Email already exists</p>
+                )}
+                {emailAvailable === true && (
+                  <p className="text-xs text-green-700">Email is available</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -98,10 +146,29 @@ export default function Page() {
                   onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
                   required
                 />
+                {cardAvailable === false && (
+                  <p className="text-xs text-red-600">Card number already exists</p>
+                )}
+                {cardAvailable === true && (
+                  <p className="text-xs text-green-700">Card number is available</p>
+                )}
               </div>
+              {checking && (
+                <p className="text-xs text-gray-500">Checking availability...</p>
+              )}
+              {availabilityError && (
+                <p className="text-xs text-red-600">{availabilityError}</p>
+              )}
               <Button
                 onClick={() => setStep(2)}
-                disabled={!firstName || !lastName || !email || cardNumber.length !== 8}
+                disabled={
+                  !firstName ||
+                  !lastName ||
+                  !email ||
+                  cardNumber.length !== 8 ||
+                  emailAvailable === false ||
+                  cardAvailable === false
+                }
               >
                 Next
               </Button>

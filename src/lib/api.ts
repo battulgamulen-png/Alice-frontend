@@ -21,6 +21,18 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return data as T;
 }
 
+export async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "GET",
+  });
+
+  const data = (await res.json()) as T & ApiError;
+  if (!res.ok) {
+    throw new Error(data.error || "Request failed");
+  }
+  return data as T;
+}
+
 export async function apiPostAuth<T>(
   path: string,
   body: unknown,
