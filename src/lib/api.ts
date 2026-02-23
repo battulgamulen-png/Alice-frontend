@@ -1,5 +1,7 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://alice-backend-ptpv.onrender.com"
+).replace(/\/+$/, "");
 
 export type ApiError = {
   error?: string;
