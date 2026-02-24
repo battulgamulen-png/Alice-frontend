@@ -8,6 +8,7 @@ type Tx = {
   id: string;
   amountUsdCents: number;
   createdAt: string;
+  direction: "incoming" | "outgoing";
   fromCard: {
     id: string;
     holderName: string;
@@ -102,12 +103,21 @@ export default function Transactions() {
                         {formatCardNumber(tx.fromCard.number)} →{" "}
                         {formatCardNumber(tx.toCard.number)}
                       </p>
-                      <span className="font-semibold text-blue-700">
+                      <span
+                        className={`font-semibold ${
+                          tx.direction === "incoming"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {tx.direction === "incoming" ? "+" : "-"}
                         {formatUsd(tx.amountUsdCents)}
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {tx.fromCard.holderName} to {tx.toCard.holderName}
+                      {tx.direction === "incoming"
+                        ? `From ${tx.fromCard.holderName}`
+                        : `To ${tx.toCard.holderName}`}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(tx.createdAt).toLocaleString()}

@@ -34,7 +34,7 @@ export type ProfileData = {
 
 const initialProfile: ProfileData = {
   // ✅ Added
-  avatarUrl: "/mulenpic.PNG",
+  avatarUrl: "/userzurag.jpg",
   displayName: "Mulen Battulga",
 
   firstName: "Mulen",
@@ -111,7 +111,7 @@ export default function Profile() {
           lastName: result.user.lastName,
           email: result.user.email,
           phone: result.user.phone ?? "",
-          avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
+          avatarUrl: result.user.avatarUrl || "/userzurag.jpg",
           nationalId: result.user.nationalId ?? "",
           kycStatus: result.user.kycStatus ?? "Pending",
           addressLine1: result.user.addressLine1 ?? "",
@@ -226,7 +226,7 @@ export default function Profile() {
         lastName: result.user.lastName,
         email: result.user.email,
         phone: result.user.phone ?? "",
-        avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
+        avatarUrl: result.user.avatarUrl || "/userzurag.jpg",
         nationalId: result.user.nationalId ?? "",
         kycStatus: result.user.kycStatus ?? "Pending",
         addressLine1: result.user.addressLine1 ?? "",
@@ -250,7 +250,7 @@ export default function Profile() {
           lastName: result.user.lastName,
           email: result.user.email,
           phone: result.user.phone,
-          avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
+          avatarUrl: result.user.avatarUrl || "/userzurag.jpg",
         }),
       );
       window.dispatchEvent(new Event("auth-user-updated"));

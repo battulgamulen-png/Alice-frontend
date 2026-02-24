@@ -20,11 +20,31 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: "Dashboard", icon: <Home className="w-5 h-5" />, path: "/user/dashboard" },
-  { name: "Cards", icon: <CreditCard className="w-5 h-5" />, path: "/user/cards" },
-  { name: "Transactions", icon: <DollarSign className="w-5 h-5" />, path: "/user/transactions" },
-  { name: "Transfer", icon: <Clock className="w-5 h-5" />, path: "/user/transfer" },
-  { name: "Settings", icon: <Settings className="w-5 h-5" />, path: "/user/settings" },
+  {
+    name: "Dashboard",
+    icon: <Home className="w-5 h-5" />,
+    path: "/user/dashboard",
+  },
+  {
+    name: "Cards",
+    icon: <CreditCard className="w-5 h-5" />,
+    path: "/user/cards",
+  },
+  {
+    name: "Transactions",
+    icon: <DollarSign className="w-5 h-5" />,
+    path: "/user/transactions",
+  },
+  {
+    name: "Transfer",
+    icon: <Clock className="w-5 h-5" />,
+    path: "/user/transfer",
+  },
+  {
+    name: "Settings",
+    icon: <Settings className="w-5 h-5" />,
+    path: "/user/settings",
+  },
 ];
 
 export default function Sidebar({
@@ -69,7 +89,7 @@ export default function Sidebar({
     return full || "User";
   }, [authUser?.firstName, authUser?.lastName]);
 
-  const avatarSrc = authUser?.avatarUrl || "/mulenpic.PNG";
+  const avatarSrc = authUser?.avatarUrl || "/userzurag.jpg";
 
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
@@ -94,7 +114,7 @@ export default function Sidebar({
       >
         <img
           src={avatarSrc}
-          alt="User"
+          alt="./userzurag"
           className="w-10 h-10 rounded-full object-cover"
         />
         {!collapsed && (

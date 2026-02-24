@@ -30,7 +30,7 @@ export default function AccountSummary({ profile, kycBadgeVariant }: Props) {
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3 rounded-2xl border border-black/10 p-4">
           <img
-            src={profile.avatarUrl}
+            src={profile.avatarUrl || "/userzurag.jpg"}
             alt="User"
             className="w-10 h-10 rounded-full object-cover"
           />

@@ -15,9 +15,6 @@ export default function Footer() {
           <a href="#home" className="hover:text-gray-400 transition-colors">
             Home
           </a>
-          <a href="#about" className="hover:text-gray-400 transition-colors">
-            About
-          </a>
           <a href="#services" className="hover:text-gray-400 transition-colors">
             Services
           </a>
