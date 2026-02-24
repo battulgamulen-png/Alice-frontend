@@ -1,60 +1,66 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import Image from "next/image";
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-white h-screen">
-      <div className="mx-auto max-w-7xl px-6 py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* LEFT CONTENT */}
-          <div className="space-y-6">
-            <span className="inline-block rounded-full border border-black px-4 py-1 text-xs font-medium tracking-wide">
+    <section className="relative h-screen overflow-hidden bg-[linear-gradient(120deg,#f6f6f6_0%,#ffffff_55%,#eceff4_100%)]">
+      <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-black/5 blur-2xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-slate-300/30 blur-3xl" />
+
+      <div className="mx-auto max-w-7xl px-6 py-20 md:py-24 lg:py-28">
+        <div className="grid grid-cols-1 gap-14 lg:grid-cols-2 lg:gap-16 lg:items-center">
+          <div className="space-y-7">
+            <span className="inline-flex items-center rounded-full border border-black/20 bg-white/80 px-4 py-1.5 text-xs font-semibold tracking-[0.12em] text-black/80">
               Trusted Digital Banking
             </span>
 
-            <h1 className="text-4xl md:text-5xl xl:text-6xl font-semibold leading-tight tracking-tight text-black">
-              Smart banking for a <br />
-              <span className="underline decoration-black/20">
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-black md:text-5xl xl:text-6xl">
+              Smart banking for a
+              <br />
+              <span className="text-black/70 underline decoration-black/20">
                 modern world
               </span>
             </h1>
 
-            <p className="max-w-xl text-base md:text-lg text-neutral-600">
+            <p className="max-w-xl text-base text-neutral-600 md:text-lg">
               Manage your finances securely with our next-generation banking
               platform. Simple, fast, and built for trust.
             </p>
 
-            <div className="flex gap-4 pt-4">
-              <Link href={"/"}>
-                {" "}
-                <Button className="bg-black text-white hover:bg-neutral-800 px-8">
-                  The World
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                className="border-black text-black hover:bg-black hover:text-white px-8"
-              >
-                Learn More
-              </Button>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
+                <p className="text-xs text-neutral-500">Transfers</p>
+                <p className="text-sm font-semibold text-black">Instant</p>
+              </div>
+              <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
+                <p className="text-xs text-neutral-500">Security</p>
+                <p className="text-sm font-semibold text-black">Bank-grade</p>
+              </div>
+              <div className="rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm">
+                <p className="text-xs text-neutral-500">Support</p>
+                <p className="text-sm font-semibold text-black">24/7</p>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT VISUAL */}
           <div className="relative">
-            <div className="rounded-3xl border border-black/10 bg-neutral-50 p-8 shadow-sm">
-              <div className="space-y-4">
-                <div className="h-12 w-40 rounded-full bg-black" />
-                <div className="h-4 w-3/4 rounded bg-neutral-200" />
-                <div className="h-4 w-2/3 rounded bg-neutral-200" />
-                <div className="mt-6 h-32 rounded-xl bg-white border border-black/10" />
+            <div className="relative overflow-hidden rounded-3xl border border-black/10 bg-white p-3 shadow-2xl">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                <Image
+                  src="/wallstreet.jpg"
+                  alt="Financial district skyline"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
             </div>
 
-            {/* subtle decor */}
-            <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full border border-black/10" />
+            <div className="absolute -bottom-6 -left-6 rounded-2xl border border-black/10 bg-white p-4 shadow-xl">
+              <p className="text-xs text-neutral-500">Monthly Growth</p>
+              <p className="text-lg font-semibold text-black">+14.8%</p>
+            </div>
           </div>
         </div>
       </div>

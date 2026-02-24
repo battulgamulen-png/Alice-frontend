@@ -149,6 +149,13 @@ export default function Step2({ data, onBack }: Step2Props) {
             </Button>
             <button
               type="button"
+              onClick={() => router.push("/login")}
+              className="w-full text-sm text-center text-blue-600 hover:underline transition"
+            >
+              Already have an account? Log in
+            </button>
+            <button
+              type="button"
               onClick={onBack || (() => router.push("/signup"))}
               className="w-full text-sm text-center text-gray-600 hover:text-black transition"
             >

@@ -20,7 +20,9 @@ export default function Page() {
   const [checking, setChecking] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
   const [cardAvailable, setCardAvailable] = useState<boolean | null>(null);
-  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,7 +78,7 @@ export default function Page() {
         transition={{ duration: 0.8, ease: "easeInOut" }}
         className={swapped ? "order-2" : "order-1"}
       >
-        <div className="w-150 h-200 bg-gradient-to-br from-teal-300 to-blue-500 rounded-2xl shadow-lg" />
+        <div className="w-150 h-210 bg-gradient-to-br from-teal-300 to-blue-500 rounded-2xl shadow-lg" />
       </motion.div>
       <motion.div
         layout
@@ -84,7 +86,7 @@ export default function Page() {
         className={swapped ? "order-1" : "order-2"}
       >
         {step === 1 && (
-          <Card className="w-100 h-150 max-w-md bg-white text-black rounded-2xl shadow-xl">
+          <Card className="w-100 h-160 max-w-md bg-white text-black rounded-2xl shadow-xl">
             <CardHeader className="text-center space-y-2">
               <CardTitle className="text-2xl font-semibold tracking-tight">
                 Bank Sign Up
@@ -139,22 +141,32 @@ export default function Page() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Card Number (8 digits)</label>
+                <label className="text-sm font-medium">
+                  Card Number (8 digits)
+                </label>
                 <Input
                   placeholder="12345678"
                   value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  onChange={(e) =>
+                    setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 8))
+                  }
                   required
                 />
                 {cardAvailable === false && (
-                  <p className="text-xs text-red-600">Card number already exists</p>
+                  <p className="text-xs text-red-600">
+                    Card number already exists
+                  </p>
                 )}
                 {cardAvailable === true && (
-                  <p className="text-xs text-green-700">Card number is available</p>
+                  <p className="text-xs text-green-700">
+                    Card number is available
+                  </p>
                 )}
               </div>
               {checking && (
-                <p className="text-xs text-gray-500">Checking availability...</p>
+                <p className="text-xs text-gray-500">
+                  Checking availability...
+                </p>
               )}
               {availabilityError && (
                 <p className="text-xs text-red-600">{availabilityError}</p>
@@ -172,6 +184,13 @@ export default function Page() {
               >
                 Next
               </Button>
+              <button
+                type="button"
+                onClick={() => router.push("/login")}
+                className="w-full text-sm text-center text-blue-600 hover:underline transition"
+              >
+                Already have an account? Log in
+              </button>
               <button
                 type="button"
                 onClick={() => router.push("/")}

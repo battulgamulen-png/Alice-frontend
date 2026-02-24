@@ -105,6 +105,13 @@ export default function StepOne() {
                   </Button>
                   <button
                     type="button"
+                    onClick={() => router.push("/signup")}
+                    className="w-full text-sm text-center text-blue-600 hover:underline transition"
+                  >
+                    Don&apos;t have an account? Sign up
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => router.push("/")}
                     className="w-full text-sm text-center text-gray-600 hover:text-black transition"
                   >
