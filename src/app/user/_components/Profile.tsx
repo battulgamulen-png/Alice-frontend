@@ -91,6 +91,17 @@ export default function Profile() {
             firstName: string;
             lastName: string;
             phone: string | null;
+            avatarUrl: string | null;
+            nationalId: string | null;
+            kycStatus: KycStatus;
+            addressLine1: string | null;
+            addressLine2: string | null;
+            city: string | null;
+            country: string | null;
+            postalCode: string | null;
+            preferredCurrency: "MNT" | "USD" | "EUR";
+            marketingOptIn: boolean;
+            twoFactorEnabled: boolean;
           };
         }>("/me", token);
 
@@ -100,6 +111,17 @@ export default function Profile() {
           lastName: result.user.lastName,
           email: result.user.email,
           phone: result.user.phone ?? "",
+          avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
+          nationalId: result.user.nationalId ?? "",
+          kycStatus: result.user.kycStatus ?? "Pending",
+          addressLine1: result.user.addressLine1 ?? "",
+          addressLine2: result.user.addressLine2 ?? "",
+          city: result.user.city ?? "",
+          country: result.user.country ?? "",
+          postalCode: result.user.postalCode ?? "",
+          preferredCurrency: result.user.preferredCurrency ?? "MNT",
+          marketingOptIn: result.user.marketingOptIn ?? false,
+          twoFactorEnabled: result.user.twoFactorEnabled ?? true,
           displayName: `${result.user.firstName} ${result.user.lastName}`.trim(),
         };
 
@@ -164,6 +186,17 @@ export default function Profile() {
           firstName: string;
           lastName: string;
           phone: string | null;
+          avatarUrl: string | null;
+          nationalId: string | null;
+          kycStatus: KycStatus;
+          addressLine1: string | null;
+          addressLine2: string | null;
+          city: string | null;
+          country: string | null;
+          postalCode: string | null;
+          preferredCurrency: "USD" | "EUR";
+          marketingOptIn: boolean;
+          twoFactorEnabled: boolean;
         };
       }>(
         "/me/profile",
@@ -172,6 +205,17 @@ export default function Profile() {
           lastName: draft.lastName,
           email: draft.email,
           phone: draft.phone,
+          avatarUrl: draft.avatarUrl,
+          nationalId: draft.nationalId,
+          kycStatus: draft.kycStatus,
+          addressLine1: draft.addressLine1,
+          addressLine2: draft.addressLine2,
+          city: draft.city,
+          country: draft.country,
+          postalCode: draft.postalCode,
+          preferredCurrency: draft.preferredCurrency,
+          marketingOptIn: draft.marketingOptIn,
+          twoFactorEnabled: draft.twoFactorEnabled,
         },
         token,
       );
@@ -182,6 +226,17 @@ export default function Profile() {
         lastName: result.user.lastName,
         email: result.user.email,
         phone: result.user.phone ?? "",
+        avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
+        nationalId: result.user.nationalId ?? "",
+        kycStatus: result.user.kycStatus ?? "Pending",
+        addressLine1: result.user.addressLine1 ?? "",
+        addressLine2: result.user.addressLine2 ?? "",
+        city: result.user.city ?? "",
+        country: result.user.country ?? "",
+        postalCode: result.user.postalCode ?? "",
+        preferredCurrency: result.user.preferredCurrency ?? "MNT",
+        marketingOptIn: result.user.marketingOptIn ?? false,
+        twoFactorEnabled: result.user.twoFactorEnabled ?? true,
         displayName: `${result.user.firstName} ${result.user.lastName}`.trim(),
       };
 
@@ -195,8 +250,10 @@ export default function Profile() {
           lastName: result.user.lastName,
           email: result.user.email,
           phone: result.user.phone,
+          avatarUrl: result.user.avatarUrl || "/mulenpic.PNG",
         }),
       );
+      window.dispatchEvent(new Event("auth-user-updated"));
       setEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save profile");

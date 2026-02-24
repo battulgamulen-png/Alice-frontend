@@ -82,8 +82,13 @@ export default function PersonalInformation({
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const objectUrl = URL.createObjectURL(file);
-                    onChange("avatarUrl", objectUrl);
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      if (typeof reader.result === "string") {
+                        onChange("avatarUrl", reader.result);
+                      }
+                    };
+                    reader.readAsDataURL(file);
                   }}
                   className="rounded-2xl"
                 />

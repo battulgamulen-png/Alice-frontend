@@ -91,3 +91,18 @@ export async function apiGetAuth<T>(path: string, token: string): Promise<T> {
   }
   return data as T;
 }
+
+export async function apiDeleteAuth<T>(path: string, token: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = (await res.json()) as T & ApiError;
+  if (!res.ok) {
+    throw new Error(data.error || "Request failed");
+  }
+  return data as T;
+}

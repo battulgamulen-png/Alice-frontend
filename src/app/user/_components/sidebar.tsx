@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
@@ -9,7 +9,6 @@ import {
   Clock,
   Settings,
   LogOut,
-  User,
 } from "lucide-react";
 import Sum1 from "@/components/icons/sum";
 import Sum2 from "@/components/icons/sum2";
@@ -36,8 +35,41 @@ export default function Sidebar({
   setCollapsed?: (val: boolean) => void;
 }) {
   const [active, setActive] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<{
+    firstName?: string;
+    lastName?: string;
+    avatarUrl?: string;
+  } | null>(null);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const loadAuthUser = () => {
+      try {
+        const raw = localStorage.getItem("auth_user");
+        setAuthUser(raw ? (JSON.parse(raw) as typeof authUser) : null);
+      } catch {
+        setAuthUser(null);
+      }
+    };
+
+    loadAuthUser();
+    window.addEventListener("storage", loadAuthUser);
+    window.addEventListener("auth-user-updated", loadAuthUser);
+    return () => {
+      window.removeEventListener("storage", loadAuthUser);
+      window.removeEventListener("auth-user-updated", loadAuthUser);
+    };
+  }, []);
+
+  const displayName = useMemo(() => {
+    const firstName = authUser?.firstName?.trim() || "";
+    const lastName = authUser?.lastName?.trim() || "";
+    const full = `${firstName} ${lastName}`.trim();
+    return full || "User";
+  }, [authUser?.firstName, authUser?.lastName]);
+
+  const avatarSrc = authUser?.avatarUrl || "/mulenpic.PNG";
 
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
@@ -61,12 +93,12 @@ export default function Sidebar({
         }`}
       >
         <img
-          src="/mulenpic.PNG"
+          src={avatarSrc}
           alt="User"
           className="w-10 h-10 rounded-full object-cover"
         />
         {!collapsed && (
-          <span className="text-lg font-medium">Mulen Battulga</span>
+          <span className="text-lg font-medium">{displayName}</span>
         )}
       </div>
 
